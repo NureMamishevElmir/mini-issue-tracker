@@ -10,11 +10,11 @@
 - **Об'єкт `User`:** `{"id", "name"}`.
 - **Час:** ISO 8601 UTC, `2026-11-10T09:15:30Z` (D-09). **Порядок списків:** за `id` зростанням (BR-04).
 - **Порядок перевірок:** `422` → `404` → `409` (D-01). Будь-яка помилка не змінює дані (NFR-06).
-- **Формат помилок:**
+- **Формат помилок** (поля `loc` і `type` — як у Pydantic 2; тексти `msg` у прикладах ілюстративні):
   - `422`: `{"detail": [{"loc": ["body", "title"], "msg": "...", "type": "..."}]}` — `loc` вказує поле (NFR-02);
   - `404`: `{"detail": "Issue 999 not found"}`;
   - `409`: `{"detail": "Transition CLOSED -> OPEN is not allowed"}` або `{"detail": "Issue 7 is CLOSED and cannot be edited"}`.
-- `{id}` у шляху — додатне ціле; нечислове або ≤ 0 → `422`.
+- `{id}` у шляху — додатне ціле; нечислове або ≤ 0 → `422` (D-15).
 - Типи строгі, без перетворення (`"assignee_id": "2"` → `422`, D-14); невідомі поля тіла й невідомі параметри запиту → `422` (D-03, D-13); `null` дозволено лише в `assignee_id` для PATCH (D-05).
 
 ## Зведення маршрутів
@@ -55,7 +55,7 @@
   `priority = "medium"`, якщо їх не передано.
 - **Помилки:** `422` — `title` відсутнє, `null`, коротше за 3 або довше за 120 символів після обрізання; `null` у будь-якому полі; опис > 2000 або `null`;
   недопустимий `priority`; невідоме поле.
-- **Правила:** розділ 6, D-03, D-05–D-07, D-11. **Критерії:** AC-01-01 – AC-01-04.
+- **Правила:** розділ 6, D-03, D-05–D-07, D-11. **Критерії:** AC-01-01 – AC-01-05.
 
 Приклад успіху:
 
@@ -78,8 +78,8 @@ POST /issues
 ```http
 422 Unprocessable Content
 {"detail": [
-  {"loc": ["body", "title"], "msg": "Title must be 3-120 characters after trimming", "type": "string_length"},
-  {"loc": ["body", "priority"], "msg": "Input should be 'low', 'medium' or 'high'", "type": "enum"}
+  {"loc": ["body", "title"], "msg": "String should have at least 3 characters", "type": "string_too_short"},
+  {"loc": ["body", "priority"], "msg": "Input should be 'low', 'medium' or 'high'", "type": "literal_error"}
 ]}
 ```
 
@@ -89,7 +89,7 @@ POST /issues
   `low` | `medium` | `high`). Обидва разом — AND.
 - **Успіх `200`:** масив `Issue` за зростанням `id`; нічого не знайдено → `[]`.
 - **Помилки:** `422` — недопустиме значення фільтра (наприклад, `status=open`).
-- **Правила:** BR-04. **Критерії:** AC-02-01 – AC-02-03, AC-02-05.
+- **Правила:** BR-04, D-13. **Критерії:** AC-02-01 – AC-02-03, AC-02-05 – AC-02-07.
 
 ```http
 GET /issues?status=OPEN&priority=high
@@ -103,7 +103,7 @@ GET /issues?status=OPEN&priority=high
 - **Path:** `id`.
 - **Успіх `200`:** `Issue`.
 - **Помилки:** `404` — заявки немає; `422` — некоректний `id`.
-- **Критерії:** AC-02-04.
+- **Критерії:** AC-02-04, AC-02-07.
 
 ```http
 GET /issues/1
@@ -125,7 +125,7 @@ GET /issues/999
 - **Успіх `200`:** оновлений `Issue`.
 - **Помилки:** `422` — порожнє тіло, невідоме поле (зокрема `status`), `null` у `title`/`description`/`priority`,
   порушені межі, `assignee_id` не `1`/`2`/`null`; `404` — заявки немає; `409` — заявка `CLOSED` (BR-02, D-04).
-- **Критерії:** AC-03-01 – AC-03-04, AC-05-02, AC-05-03.
+- **Критерії:** AC-03-01 – AC-03-06, AC-05-02 – AC-05-04.
 
 ```http
 PATCH /issues/1
@@ -142,7 +142,7 @@ PATCH /issues/1
 - **Успіх `200`:** `Issue` з новим (або тим самим) статусом.
 - **Помилки:** `422` — немає `status`, значення поза переліком, зайве поле; `404` — заявки немає; `409` — заборонений
   перехід.
-- **Критерії:** AC-04-01 – AC-04-05.
+- **Критерії:** AC-04-01 – AC-04-06.
 
 ```http
 PATCH /issues/1/status
@@ -182,8 +182,8 @@ POST /issues/1/comments
 {"author_id": 5, "text": "   "}
 422 Unprocessable Content
 {"detail": [
-  {"loc": ["body", "author_id"], "msg": "Unknown user; allowed: 1, 2", "type": "value_error"},
-  {"loc": ["body", "text"], "msg": "Text must be 1-1000 characters after trimming", "type": "string_length"}
+  {"loc": ["body", "author_id"], "msg": "Input should be 1 or 2", "type": "literal_error"},
+  {"loc": ["body", "text"], "msg": "String should have at least 1 character", "type": "string_too_short"}
 ]}
 ```
 
