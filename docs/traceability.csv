@@ -16,7 +16,7 @@ FR-04,US-04,AC-04-01,BR-01,IssueService.change_status,PATCH /issues/{id}/status,
 FR-04,US-04,AC-04-02,BR-01,IssueService.change_status,PATCH /issues/{id}/status,test_closed_cannot_reopen
 FR-04,US-04,AC-04-03,BR-01,IssueService.change_status,PATCH /issues/{id}/status,test_same_status_is_noop
 FR-04,US-04,AC-04-04,E-01,API schemas,PATCH /issues/{id}/status,test_status_invalid_value_422
-FR-04,US-04,"AC-04-01..03 (матриця 3x3)",BR-01,IssueService.change_status,PATCH /issues/{id}/status,test_status_transition_matrix (параметризований; 9 комбінацій)
+FR-04,US-04,AC-04-05,BR-01,IssueService.change_status,PATCH /issues/{id}/status,test_status_transition_matrix (параметризований; 9 комбінацій)
 FR-05,US-05,AC-05-01,розділ 6,API routes (users),GET /users,test_users_list_two_agents
 FR-05,US-05,AC-05-02,BR-03,IssueService.update,PATCH /issues/{id},test_assign_and_unassign
 FR-05,US-05,AC-05-03,E-01,API schemas,PATCH /issues/{id},test_assign_unknown_user_422

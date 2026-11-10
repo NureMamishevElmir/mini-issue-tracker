@@ -15,6 +15,7 @@
   - `404`: `{"detail": "Issue 999 not found"}`;
   - `409`: `{"detail": "Transition CLOSED -> OPEN is not allowed"}` або `{"detail": "Issue 7 is CLOSED and cannot be edited"}`.
 - `{id}` у шляху — додатне ціле; нечислове або ≤ 0 → `422`.
+- Типи строгі, без перетворення (`"assignee_id": "2"` → `422`, D-14); невідомі поля тіла й невідомі параметри запиту → `422` (D-03, D-13); `null` дозволено лише в `assignee_id` для PATCH (D-05).
 
 ## Зведення маршрутів
 
@@ -52,7 +53,7 @@
   `status`, `assignee_id`, `id`, `created_at`, → `422` (D-03, D-07).
 - **Успіх `201`:** створений `Issue` зі `status = "OPEN"`, `assignee_id = null`, `description = ""` і
   `priority = "medium"`, якщо їх не передано.
-- **Помилки:** `422` — назва порожня, коротша за 3 або довша за 120 символів після обрізання; опис > 2000 або `null`;
+- **Помилки:** `422` — `title` відсутнє, `null`, коротше за 3 або довше за 120 символів після обрізання; `null` у будь-якому полі; опис > 2000 або `null`;
   недопустимий `priority`; невідоме поле.
 - **Правила:** розділ 6, D-03, D-05–D-07, D-11. **Критерії:** AC-01-01 – AC-01-04.
 
@@ -104,6 +105,18 @@ GET /issues?status=OPEN&priority=high
 - **Помилки:** `404` — заявки немає; `422` — некоректний `id`.
 - **Критерії:** AC-02-04.
 
+```http
+GET /issues/1
+200 OK
+{"id": 1, "title": "Login fails", "description": "Crash after login", "status": "OPEN",
+ "priority": "medium", "assignee_id": null, "created_at": "2026-11-10T09:15:30Z"}
+```
+```http
+GET /issues/999
+404 Not Found
+{"detail": "Issue 999 not found"}
+```
+
 ### 6. `PATCH /issues/{id}`
 
 - **Path:** `id`. **Body:** будь-яка непорожня підмножина `title`, `description`, `priority`, `assignee_id`.
@@ -129,7 +142,7 @@ PATCH /issues/1
 - **Успіх `200`:** `Issue` з новим (або тим самим) статусом.
 - **Помилки:** `422` — немає `status`, значення поза переліком, зайве поле; `404` — заявки немає; `409` — заборонений
   перехід.
-- **Критерії:** AC-04-01 – AC-04-04.
+- **Критерії:** AC-04-01 – AC-04-05.
 
 ```http
 PATCH /issues/1/status
@@ -180,3 +193,9 @@ POST /issues/1/comments
 - **Успіх `200`:** масив `Comment` за зростанням `id`; коментарів немає → `[]`.
 - **Помилки:** `404` — заявки немає; `422` — некоректний `id`.
 - **Критерії:** AC-06-01, AC-06-03.
+
+```http
+GET /issues/1/comments
+200 OK
+[{"id": 1, "issue_id": 1, "author_id": 1, "text": "Reproduced on Chrome", "created_at": "2026-11-10T09:20:02Z"}]
+```
