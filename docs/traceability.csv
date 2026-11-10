@@ -1,0 +1,29 @@
+FR,User Story,Acceptance criteria,Business rules,Component,API,Future test
+FR-01,US-01,AC-01-01,"розділ 6; D-07",API schemas + IssueService.create,POST /issues,test_create_issue_defaults
+FR-01,US-01,AC-01-02,D-11,API schemas,POST /issues,test_create_title_length_boundaries
+FR-01,US-01,AC-01-03,D-03,API schemas,POST /issues,test_create_rejects_status_and_bad_priority
+FR-01,US-01,AC-01-04,D-06,API schemas,POST /issues,test_create_description_boundaries
+FR-02,US-02,AC-02-01,BR-04,IssueService.list + Repository,GET /issues,test_list_ordered_by_id
+FR-02,US-02,AC-02-02,BR-04,IssueService.list + Repository,GET /issues,test_filter_status_and_priority_and
+FR-02,US-02,AC-02-03,BR-04,IssueService.list,GET /issues,test_filter_no_match_returns_empty_list
+FR-02,US-02,AC-02-04,E-02,IssueService.get,GET /issues/{id},test_get_missing_issue_404
+FR-02,US-02,AC-02-05,E-01,API schemas,GET /issues,test_filter_invalid_value_422
+FR-03,US-03,AC-03-01,BR-03,IssueService.update,PATCH /issues/{id},test_patch_changes_only_sent_fields
+FR-03,US-03,AC-03-02,"BR-03; NFR-06",IssueService.update + Repository transaction,PATCH /issues/{id},test_patch_atomic_on_partial_invalid
+FR-03,US-03,AC-03-03,"D-02; D-03",API schemas + IssueService.update,PATCH /issues/{id},test_patch_empty_or_status_field_422
+FR-03,US-03,AC-03-04,"BR-02; D-04",IssueService.update,PATCH /issues/{id},test_patch_closed_issue_409
+FR-04,US-04,AC-04-01,BR-01,IssueService.change_status,PATCH /issues/{id}/status,test_status_open_to_in_progress
+FR-04,US-04,AC-04-02,BR-01,IssueService.change_status,PATCH /issues/{id}/status,test_closed_cannot_reopen
+FR-04,US-04,AC-04-03,BR-01,IssueService.change_status,PATCH /issues/{id}/status,test_same_status_is_noop
+FR-04,US-04,AC-04-04,E-01,API schemas,PATCH /issues/{id}/status,test_status_invalid_value_422
+FR-04,US-04,"AC-04-01..03 (матриця 3x3)",BR-01,IssueService.change_status,PATCH /issues/{id}/status,test_status_transition_matrix (параметризований; 9 комбінацій)
+FR-05,US-05,AC-05-01,розділ 6,API routes (users),GET /users,test_users_list_two_agents
+FR-05,US-05,AC-05-02,BR-03,IssueService.update,PATCH /issues/{id},test_assign_and_unassign
+FR-05,US-05,AC-05-03,E-01,API schemas,PATCH /issues/{id},test_assign_unknown_user_422
+FR-06,US-06,AC-06-01,BR-04,IssueService.add_comment + Repository,POST /issues/{id}/comments; GET /issues/{id}/comments,test_add_and_list_comments
+FR-06,US-06,AC-06-02,D-08,API schemas,POST /issues/{id}/comments,test_comment_text_boundaries
+FR-06,US-06,AC-06-03,"E-01; E-02",API schemas + IssueService.add_comment,POST /issues/{id}/comments; GET /issues/{id}/comments,test_comment_unknown_author_or_issue
+FR-06,US-06,AC-06-04,BR-02,IssueService.add_comment,POST /issues/{id}/comments,test_comment_on_closed_issue_allowed
+FR-07,US-07,AC-07-01,ADR-01,Repository + SQLite,"POST /issues; GET /issues/{id}",test_data_persists_after_restart
+FR-07,US-07,AC-07-02,NFR-06,API schemas + Repository,POST /issues,test_invalid_create_does_not_change_count
+FR-08,US-08 (майбутня),—,ADR-02,Classifier (порт),— (ЛР4),— (ЛР4)
