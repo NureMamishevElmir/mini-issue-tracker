@@ -83,10 +83,16 @@ flowchart TB
 | **Database** (`app/repository.py`, `app/db.py`) | Створення схеми та довідника користувачів, CRUD-запити, одна транзакція на операцію (читання, перевірка й запис разом), `PRAGMA foreign_keys = ON` для кожного з'єднання (у SQLite зовнішні ключі типово вимкнені), `created_at` зберігається як TEXT `YYYY-MM-DDTHH:MM:SSZ`, шлях до файлу бази зі змінної `DATABASE_PATH` (NFR-03). | Не перевіряє бізнес-правила. |
 
 **Що потрібно запрограмувати явно (не працює «з коробки» FastAPI).** `Path(gt=0)` для `{id}` (D-15); перевірка, що
-в запиті немає невідомих query-параметрів (D-13); `model_config = ConfigDict(extra="forbid", strict=True)` і
-`Literal[...]` для статусу, пріоритету та id користувачів (D-03, D-14); валідатор моделі PATCH проти порожнього тіла (D-02) — перевіряє `model_fields_set`, а не «усі значення `None`», інакше
+в запиті немає невідомих query-параметрів і що жоден параметр не повторюється (`request.query_params.getlist(...)`
+довжини 1), бо FastAPI для `?status=OPEN&status=CLOSED` мовчки бере останнє значення і повертає `200` (D-13); порожнє
+`?status=` дає `422` вже через `Literal`. `model_config = ConfigDict(extra="forbid", strict=True)` і
+`Literal[...]` для статусу, пріоритету та id користувачів (D-03, D-14). Для id користувачів (`author_id`, `assignee_id`)
+`strict=True` разом із `Literal[1, 2]` недостатньо: `true` і `1.0` приймаються як `1`, тому потрібен `field_validator(mode="before")`,
+який пропускає далі лише `type(v) is int` (і `None` для `assignee_id` у PATCH), інакше `422` з типом `int_type` (D-14). Валідатор моделі PATCH проти порожнього тіла (D-02) — перевіряє `model_fields_set`, а не «усі значення `None`», інакше
 `{"assignee_id": null}` хибно дасть `422`; сервіс застосовує лише поля з `model_fields_set` (BR-03). Обрізання — лише для
-`title` і `text` коментаря (`field_validator` з `str.strip()`, D-08, D-11), не загальним `str_strip_whitespace`, бо опис не
+`title` і `text` коментаря: `field_validator(mode="before")`, що викликає `str.strip()` лише для рядків (`isinstance(v, str)`),
+а інші типи передає далі на перевірку типу (D-08, D-11). Валідатор у типовому режимі `after` спрацьовує вже після
+`min_length`, і `" ab "` проходить як `"ab"` з кодом `200`. Не загальним `str_strip_whitespace`, бо опис не
 обрізається (D-06).
 За замовчуванням FastAPI ігнорує зайві query-параметри, а `/issues/0` доходить до обробника — це враховано в плані ЛР2.
 
