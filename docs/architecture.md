@@ -84,11 +84,14 @@ flowchart TB
 
 **Що потрібно запрограмувати явно (не працює «з коробки» FastAPI).** `Path(gt=0)` для `{id}` (D-15); перевірка, що
 в запиті немає невідомих query-параметрів і що жоден параметр не повторюється (`request.query_params.getlist(...)`
-довжини 1), бо FastAPI для `?status=OPEN&status=CLOSED` мовчки бере останнє значення і повертає `200` (D-13); порожнє
+довжини 1), бо FastAPI для `?status=OPEN&status=CLOSED` мовчки бере останнє значення і повертає `200` (D-13). Обидві
+перевірки кидають `RequestValidationError` з `loc = ("query", <назва параметра>)`, а не `HTTPException(422, ...)`:
+`HTTPException` дає `{"detail": "рядок"}` без `loc`, що порушує NFR-02 і формат з api-contract.md. Порожнє
 `?status=` дає `422` вже через `Literal`. `model_config = ConfigDict(extra="forbid", strict=True)` і
-`Literal[...]` для статусу, пріоритету та id користувачів (D-03, D-14). Для id користувачів (`author_id`, `assignee_id`)
-`strict=True` разом із `Literal[1, 2]` недостатньо: `true` і `1.0` приймаються як `1`, тому потрібен `field_validator(mode="before")`,
-який пропускає далі лише `type(v) is int` (і `None` для `assignee_id` у PATCH), інакше `422` з типом `int_type` (D-14). Валідатор моделі PATCH проти порожнього тіла (D-02) — перевіряє `model_fields_set`, а не «усі значення `None`», інакше
+`Literal[...]` для статусу та пріоритету (D-03, D-14). Id користувачів (`author_id`, `assignee_id`) — `StrictInt`
+(`Annotated[int, Field(strict=True)]`), а не `Literal[1, 2]`: `Literal[1, 2]` приймає `true` і `1.0` як `1`. `StrictInt`
+відхиляє `"2"`, `true`, `2.0` з типом `int_type`; належність до довідника (`1` або `2`) перевіряє окремий
+`field_validator` (режим `after`), який для `3` чи `0` дає `422` з типом `value_error` (D-14, AC-05-03). Валідатор моделі PATCH проти порожнього тіла (D-02) — перевіряє `model_fields_set`, а не «усі значення `None`», інакше
 `{"assignee_id": null}` хибно дасть `422`; сервіс застосовує лише поля з `model_fields_set` (BR-03). Обрізання — лише для
 `title` і `text` коментаря: `field_validator(mode="before")`, що викликає `str.strip()` лише для рядків (`isinstance(v, str)`),
 а інші типи передає далі на перевірку типу (D-08, D-11). Валідатор у типовому режимі `after` спрацьовує вже після
