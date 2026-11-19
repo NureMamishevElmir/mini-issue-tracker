@@ -12,6 +12,7 @@ FR-02,US-02,AC-02-04,E-02,IssueService.get,GET /issues/{id},test_get_missing_iss
 FR-02,US-02,AC-02-05,E-01,API schemas,GET /issues,test_filter_invalid_value_422
 FR-02,US-02,AC-02-06,BR-04,IssueService.list + Repository,GET /issues,test_filter_single_field
 FR-02,US-02,AC-02-07,"D-13; D-15",API routes + schemas,GET /issues; GET /issues/{id},test_unknown_query_param_and_zero_id_422
+FR-02,US-02,AC-02-08,D-15,API routes,GET /issues/{id},test_path_id_upper_bound
 FR-03,US-03,AC-03-01,BR-03,IssueService.update,PATCH /issues/{id},test_patch_changes_only_sent_fields
 FR-03,US-03,AC-03-02,"BR-03; NFR-06",IssueService.update + Repository transaction,PATCH /issues/{id},test_patch_atomic_on_partial_invalid
 FR-03,US-03,AC-03-03,"D-02; D-03",API schemas + IssueService.update,PATCH /issues/{id},test_patch_empty_or_status_field_422
@@ -36,4 +37,4 @@ FR-06,US-06,AC-06-05,D-14,API schemas,POST /issues/{id}/comments,test_comment_no
 FR-07,US-07,AC-07-01,ADR-01,Repository + SQLite,"POST /issues; GET /issues/{id}",test_data_persists_after_restart
 FR-07,US-07,AC-07-02,NFR-06,API schemas + Repository,POST /issues,test_invalid_create_does_not_change_count
 FR-08,US-08 (майбутня),—,ADR-02,Classifier (порт),— (ЛР4),— (ЛР4)
-ПОКРИТТЯ,"FR-01–FR-07: 7 / 7 = 100 % (для кожної є історія, критерій, API і майбутній тест)","36 / 36 критеріїв мають рядок",,,,
+ПОКРИТТЯ,"FR-01–FR-07: 7 / 7 = 100 % (для кожної є історія, критерій, API і майбутній тест)","37 / 37 критеріїв мають рядок",,,,
